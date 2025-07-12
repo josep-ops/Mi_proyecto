@@ -1,0 +1,120 @@
+---
+title: "Análisis descriptivo e inferencial de variables antropométricas y bioquímicas"
+author: "Lazo de la Vega Lazo Andrea Daniela Nayelli Angie Ramírez López"
+date: "8/6/2025"
+output: pdf_document
+---
+```{r}
+library(readxl)
+```
+```{r}
+file.choose()
+```
+```{r}
+data <- read_excel("D:\\Documentos\\Descargas\\s09_circunf_glucosa.xlsx")
+data
+```
+#Cargamos paquetes necesarios
+# install.packages(c("tidyverse", "ggplot2", "psych"))
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(psych)
+```
+## Visualizamos estructura del dataframe
+```{r}
+str(data)
+```
+## Resumen estadístico general
+# Ofrece un resumen estadístico básico (mínimo, máximo, media, cuartiles) para cada variable.
+```{r}
+summary(data)
+```
+## Estadísticas descriptivas por variable numérica
+
+```{r}
+describe(data %>% select(edad_a, circunf_cintura_cm, glucosa_mg_dL, circunf_brazo_cm, peso_corp_kg))
+```
+
+##Distribución por sexo
+```{r}
+table(data$sexo)
+```
+
+##Distribución del hábito de tabaquismo
+```{r}
+table(data$tabaquismo)
+```
+
+##Histograma de edad
+```{r}
+ggplot(data, aes(x = edad_a)) +
+  geom_histogram(binwidth = 5, fill = "skyblue", color = "black") +
+  theme_minimal() +
+  labs(title = "Distribución de la Edad", x = "Edad (años)", y = "Frecuencia")
+```
+
+
+## Boxplot de glucosa por sexo
+
+```{r}
+ggplot(data, aes(x = sexo, y = glucosa_mg_dL, fill = sexo)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Glucosa según sexo", x = "Sexo", y = "Glucosa (mg/dL)")
+```
+
+## En este punto relacionamos las circunferencia de cintura y peso corporal
+
+```{r}
+ggplot(data, aes(x = circunf_cintura_cm, y = peso_corp_kg)) +
+  geom_point(alpha = 0.6, color = "darkgreen") +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  theme_minimal() +
+  labs(title = "Relación entre cintura y peso corporal", x = "Circunferencia cintura (cm)", y = "Peso corporal (kg)")
+```
+
+
+## Promedio de glucosa según tabaquismo
+
+```{r}
+data %>%
+  group_by(tabaquismo) %>%
+  summarise(promedio_glucosa = mean(glucosa_mg_dL, na.rm = TRUE))
+```
+
+
+##Análisis inferencial
+#Comparación de glucosa entre hombres y mujeres (t-test)
+```{r}
+#  'sexo' es factor
+data$sexo <- as.factor(data$sexo)
+
+t.test(glucosa_mg_dL ~ sexo, data = data)
+```
+
+#Comparación de glucosa entre fumadores y no fumadores (t-test)
+```{r}
+
+data$tabaquismo <- as.factor(data$tabaquismo)
+
+t.test(glucosa_mg_dL ~ tabaquismo, data = data)
+```
+
+##Regresión lineal: ¿La cintura y el brazo predicen el peso corporal?
+```{r}
+modelo <- lm(peso_corp_kg ~ circunf_cintura_cm + circunf_brazo_cm, data = data)
+summary(modelo)
+```
+
+##Diagnóstico del modelo de regresión
+```{r}
+par(mfrow = c(2,2))
+plot(modelo)
+```
+
+## Conclusiones
+Se identificaron diferencias significativas (o no) en los niveles de glucosa según sexo y tabaquismo.
+
+Se ajustó un modelo de regresión lineal que explica el peso corporal a partir de la circunferencia de cintura y brazo.

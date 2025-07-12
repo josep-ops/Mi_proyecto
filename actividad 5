@@ -1,0 +1,163 @@
+---
+title: "Análisis Exploratorio de Datos Clínico"
+author: "Chavez Córdova, Lennin Nilton 
+Godoy Barrera, Rodrigo Laura Ravichagua, Joseph Serran Mendoza, Franco 
+Tenorio Flores, Diego Alessandro"
+date: "6/5/2025"
+---
+
+```{r}
+# Cargamos las librerías necesarias para análisis y visualización
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+library(corrplot)
+library(gridExtra)
+```
+## Cargamos los datos
+```{r}
+library(readxl)
+```
+
+```{r}
+file.choose()
+```
+
+```{r}
+data <- read_excel("D:\\Documentos\\Descargas\\s05_pac_cancer_mama.xlsx")
+data
+```
+
+```{r}
+# Visualizamos las primeras filas para verificar que los datos están correctamente cargados
+head(data)
+```
+
+##Examinamos los datos
+```{r}
+# Exploramos la estructura del dataset y las variables incluidas
+str(data)
+summary(data)
+glimpse(data)
+```
+
+## Conversión de caracteres a factor (categóricos)
+```{r}
+# Convertimos todas las variables tipo "character" a factores para su análisis como variables categóricas
+data <- data %>%
+  mutate_if(is.character, as.factor)
+```
+
+## Visualizamos datos: el molde
+
+```{r}
+# Revisamos el número de filas y columnas, y los nombres de las variables
+dim(data)
+names(data)
+```
+
+## Visualizamos la distribución de datos
+### 1. Visualizamos los datos categóricos
+
+```{r}
+# Graficamos variables categóricas usando barras para observar la distribución de sus niveles
+data %>%
+  select(Raza, Estado_marital, Estadio_T, Estadio_N) %>%
+  gather(variable, value) %>%
+  ggplot(aes(x = value, fill = variable)) +
+  geom_bar() +
+  facet_wrap(~ variable, scales = "free") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+## 2. Visualizamos los Datos Numéricos
+### 2.1. Con histogramas
+
+```{r}
+# Histogramas para visualizar la distribución de las variables numéricas
+data %>%
+  select(Edad, Tam_tumor, hemoglobina_g_dL, Albumina_g_dL) %>%
+  gather(variable, value) %>%
+  ggplot(aes(x = value, fill = variable)) +
+  geom_histogram(bins = 30, color = "white") +
+  facet_wrap(~ variable, scales = "free") +
+  theme_minimal()
+```
+
+
+### 2.2. Con Boxplots
+
+```{r}
+# Gráficos de cajas para detectar la dispersión y posibles outliers en variables numéricas
+data %>%
+  select(Edad, Tam_tumor, hemoglobina_g_dL, Albumina_g_dL) %>%
+  gather(variable, value) %>%
+  ggplot(aes(x = variable, y = value, fill = variable)) +
+  geom_boxplot() +
+  theme_minimal()
+```
+
+
+## 3. Visualizamos variables categóricas versus categóricas
+
+```{r}
+# Cruzamos dos variables categóricas y las visualizamos con gráficos de barras agrupadas
+table(data$Estadio_T, data$Estadio_N)
+ggplot(data, aes(x = Estadio_T, fill = Estadio_N)) +
+  geom_bar(position = "dodge") +
+  theme_minimal()
+```
+
+## 4. Visualizamos la distribución de variables continuas versus categóricas
+#### 4.1. Gráficos de barras
+
+```{r}
+# Promedio de una variable numérica (Tam_tumor) agrupado por niveles de una variable categórica (Estadio_T)
+ggplot(data, aes(x = Estadio_T, y = Tam_tumor)) +
+  stat_summary(fun = mean, geom = "bar", fill = "skyblue") +
+  theme_minimal()
+```
+
+### 4.3. Filas de histogramas
+
+```{r}
+# Histogramas por grupo (Estadio_T) para ver cómo se distribuye Tam_tumor en cada grupo
+ggplot(data, aes(x = Tam_tumor)) +
+  geom_histogram(bins = 20, fill = "orange") +
+  facet_wrap(~ Estadio_T)
+```
+```{r}
+install.packages("GGally")
+```
+
+```{r}
+library(GGally)
+```
+
+## 5. Visualización para variables continuas versus continuas
+
+```{r}
+#Matriz de dispersión (scatterplot matrix) para visualizar correlaciones entre variables numéricas
+ggpairs(data[, c("Edad", "Tam_tumor", "hemoglobina_g_dL", "Albumina_g_dL")])
+```
+
+
+## 6. Exportando figuras
+
+```{r}
+# Creamos y exportamos un gráfico como imagen PNG
+fig <- ggplot(data, aes(x = Edad)) +
+  geom_histogram(fill = "purple", bins = 20) +
+  theme_minimal()
+
+ggsave("histograma_edad.png", fig, width = 6, height = 4)
+```
+
+## Conclusión
+A través de esta exploración visual de los datos clínicos, logramos comprender mejor la distribución de las variables tanto categóricas como numéricas, así como sus relaciones entre sí. Estas visualizaciones permiten identificar patrones, posibles outliers y asociaciones clave que podrían ser relevantes para futuros análisis estadísticos o modelado predictivo. Esta etapa es fundamental para garantizar un análisis más profundo y basado en datos limpios y bien comprendidos.
+
+
+
+
+

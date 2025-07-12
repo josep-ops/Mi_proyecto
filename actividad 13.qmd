@@ -1,0 +1,77 @@
+---
+title: "Paquete MICE. MICE rstudio,exploración de los datos imputados usando MICE"
+author: "GRUPO"
+format: html
+editor: visual
+INTEGRANTES:
+Chavez Córdova, Lennin Nilton 
+Godoy Barrera, Rodrigo José 
+Laura Ravichagua, Joseph Antonio
+Serran Mendoza, Franco Daniel 
+Tenorio Flores, Diego Alessandro 
+Basededatos: bajo_peso.csv 
+---
+
+## CARGAR PAQUETE Y DATOS
+
+```{r}
+install.packages("mice")
+library(mice)
+```
+
+## **Uso de ratones para observar el patrón de datos faltante**
+
+El paquete proporciona una buena función para obtener una mejor comprensión del patrón de datos faltantes`micemd.pattern()`
+
+```{r}
+md.pattern(bajo_peso)  # Visualiza el patrón de datos faltantes
+```
+
+## **Imputación de los datos que faltan**
+
+La función se encarga del proceso de imputación`mice()`
+
+```{r}
+imputaciones <- mice(bajo_peso, m = 5, method = "pmm", maxit = 10, seed = 123)
+```
+
+```{r}
+data_completo <- complete(imputaciones, action = "long")  # o usa 1, 2, ..., m para elegir una imputación específica
+
+```
+
+```{r}
+library(VIM)
+aggr_plot <- aggr(bajo_peso, col=c('navyblue','red'), numbers=TRUE, sortVars=TRUE, labels=names(bajo_peso), cex.axis=.7, gap=3, ylab=c("Histogram of missing data","Pattern"))
+```
+
+**La función se encarga del proceso de imputación`mice()`**
+
+```{r}
+tempData <- mice(bajo_peso,m=5,maxit=50,meth='pmm',seed=500)
+summary(tempData)
+```
+
+***comprobar los datos imputados, por ejemplo, para la variable Ozono, debe introducir la siguiente línea de código***
+
+```{r}
+tempData$imp$Ozone
+
+```
+
+**Verificar el método de imputación utilizado para cada variable, es muy fácil de hacer`mice`**
+
+```{r}
+tempData$meth
+```
+
+```{r}
+modelFit1 <- with(tempData,lm(peso_nacer ~ bajo_peso+ edad_madre +raza ))
+summary(pool(modelFit1))
+```
+
+```{r}
+tempData2 <- mice(bajo_peso,m=50,seed=245435)
+modelFit2 <- with(tempData2,lm(peso_nacer ~ bajo_peso+ edad_madre +raza))
+summary(pool(modelFit2))
+```

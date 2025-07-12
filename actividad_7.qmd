@@ -1,0 +1,160 @@
+------------------------------------------------------------------------
+
+title: "PC2 - Actividad 2"
+author: "Chavez Córdova Lennin, Godoy Barrera, Rodrigo, 
+Laura Ravichagua, Joseph, Serran Mendoza, Franco, Tenorio Flores, Diego"
+date: "18/5/2025"
+
+base de datos: almac_sangre.csv
+
+DOI: https://doi.org/10.1016/j.ajt.2024.11.013
+
+Cribado serológico y vigilancia molecular de las infecciones por herpesvirus/sarcoma de Kaposi/herpesvirus humano-8 para el reconocimiento precoz y el tratamiento eficaz del síndrome de citocinas inflamatorias asociado al herpesvirus del sarcoma de Kaposi en receptores de trasplantes de órganos sólidos ---
+
+### Glosario introductorio
+
+**1. Modelo estadístico**\
+Es una representación matemática que describe relaciones entre variables. Se utiliza para hacer inferencias, predicciones o entender el comportamiento de los datos.
+
+**2. Variable continua**\
+Tipo de variable numérica que puede tomar un número infinito de valores dentro de un rango (por ejemplo, niveles de glucosa o circunferencia de cintura).
+
+**3. Distribución de probabilidad**\
+Describe cómo se distribuyen los valores posibles de una variable aleatoria. Algunas distribuciones comunes incluyen la normal, binomial y chi-cuadrado.
+
+**4. Hipótesis nula (H₀)**\
+Proposición que se plantea al inicio de una prueba estadística y que indica la ausencia de efecto o diferencia. Se rechaza o no según el valor p obtenido.
+
+**5. Valor p**\
+Probabilidad de obtener un resultado igual o más extremo que el observado, si la hipótesis nula fuera cierta. Un valor p menor a 0.05 suele considerarse estadísticamente significativo.
+
+# ¿Que son las pruebas de bondad de ajuste?
+
+Las pruebas de bondad de ajust**e** evalúan qué tan bien los datos observados se ajustan a los valores esperados según un modelo estadístico.
+
+La bondad de ajuste puede evaluarse en al menos dos escenarios principales:
+
+### 1. En modelos de regresión
+
+Por ejemplo, un estudiante podría aplicar un modelo de regresión lineal para evaluar la relación entre el peso de los pacientes de un hospital y su nivel de glucosa. Para determinar si el modelo es adecuado para explicar esta relación, se puede calcular el estadístico de bondad de ajuste R².
+
+El estadístico R² mide el porcentaje de variabilidad de la variable dependiente (en este caso, el nivel de glucosa) que es explicado por el modelo de regresión. Cuanto mayor sea el valor de R², mejor será el ajuste del modelo a los datos observados.
+
+### 2. En distribuciones de probabilidad
+
+En algunos casos, el modelo estadístico que se desea aplicar requiere que los datos sigan una distribución de probabilidad específica, como la distribución normal.
+
+Por otro lado, muchas pruebas de hipótesis utilizan **estadísticos de prueba** (no necesariamente modelos completos). Por ejemplo:
+
+-   Las **pruebas t** (t de Student) usan el estadístico *t*.
+
+-   El **ANOVA** usa el estadístico *F*.
+
+-   Las **pruebas de chi-cuadrado** usan el estadístico χ².
+
+Estas pruebas se basan en las distribuciones teóricas de estos estadísticos para calcular los valores p, los cuales permiten decidir si aceptar o rechazar la hipótesis nula.
+
+Este esta sesión práctica se enfocará en el segundo escenario.
+
+# Cargamos los paquetes necesarios
+
+```{r}
+library(rio)
+library(here)
+```
+
+# Cargar los datos
+
+```{r}
+data_glucosa_circun <- import(here("almac_sangre.csv"))
+```
+
+# 1. Para datos continuos
+
+La prueba t de Student y el ANOVA son dos pruebas estadísticas ampliamente utilizadas que permiten evaluar si el valor promedio de una variable numérica difiere entre dos o más grupos o categorías.
+
+Ambas pruebas asumen que la variable continua sigue una distribución normal.\
+Pero, ¿cómo podemos comprobar si esta condición se cumple?\
+Mediante una prueba de bondad de ajuste.
+
+Una de las pruebas más comunes para evaluar la normalidad de una variable numérica es la prueba de Shapiro-Wilk. Esta prueba permite determinar si los datos provienen de una distribución normal, lo cual es un requisito clave antes de aplicar pruebas como la t de Student o el ANOVA.
+
+## Para la variable circun_cintura
+
+Esta variable corresponde a medidas de circunferecia de cintura en centimetros. En R, usamos la función nativa `shapiro.test()` para realizar la prueba de Shapiro-Wilk
+
+```{r}
+dim(almac_sangre)
+```
+
+```{r}
+names(almac_sangre)
+```
+
+```{r}
+shapiro.test(almac_sangre$PSA_preoperatorio)
+```
+
+## Para la variable PSA_preoperatorio
+
+Esta variable corresponde a PSA_preoperatorio en /%
+
+**P = 0.00002**
+
+```{r}
+shapiro.test(almac_sangre$PSA_preoperatorio)
+```
+
+## Respecto a la interpretación de los dos resultados
+
+Las hipótesis de la prueba de Shapiro-Wilk
+
+-   La hipótesis nula (H₀) establece que la muestra proviene de una distribución normal.
+
+-   La hipótesis alternativa (H₁) plantea que la muestra no proviene de una distribución normal.
+
+Si tomamos en cuenta que el valor de p aceptado para esta evaluación es \< 0.05, entonces el resultado de la evaluación de normalidad para la variable circunferecia de cintura indica que esta variable NO tiene una distribución normal.
+
+En contraste, el resultado para la variable glucosa **(p = 2.2e-16/0.00000000000000022)** indica que la muestra sí proviene de una distribución
+
+```{r}
+table(almac_sangre$Recurrencia_bioquimica)
+```
+
+# 2. Para datos categóricos
+
+El dataset para esta sesión contiene información sobre el estado de síndrome metabólico.
+
+El síndrome hepatopulmonar (SPH) se caracteriza por cambios en el oxígeno en la sangre causados por dilataciones vasculares pulmonares en pacientes con enfermedad hepática (1,2). Los criterios que se utilizan para definir el SPH y la prevalencia reportada de SPH en pacientes con cirrosis hepática y en candidatos a trasplante hepático (TH) varían ampliamente en la literatura (4-32%) (3-7). Se desconoce la causa del SPH, y la asociación entre la disfunción hepática y la hipertensión portal sigue siendo controvertida, tal y como han reportado diferentes estudios (4-10). Se considera que la ortodeoxia es característica del SPH; sin embargo, la prevalencia de esta condición en pacientes con HPS es solo del 25% (1,11).
+
+La asociación entre el SPH y el aumento de la mortalidad en pacientes con cirrosis candidatos a LT ha sido discutida. Un reciente estudio prospectivo multicéntrico identificó asociaciones entre el SPS, independientemente de su gravedad, y el aumento de la mortalidad y la peor calidad de vida (7). Otros estudios de HPS y LT fueron retrospectivos (12) o se basaron en tamaños de muestra pequeños (6).
+
+La LT es el tratamiento de elección para el HPS. Los primeros resultados de la TH en pacientes con HPS han sido decepcionantes y han reforzado la opinión de que el HPS con hipoxemia grave debe considerarse una contraindicación absoluta (13). Sin embargo, estudios retrospectivos han demostrado la reversibilidad de la HPS después de la LT, y la tasa de supervivencia en los pacientes con HPS ha sido similar a la de los pacientes sin HPS (14-17). Sin embargo, no se han realizado estudios prospectivos para analizar la supervivencia post-TH o la cronología de la reversibilidad del SPH.
+
+Los objetivos de este estudio fueron determinar tanto la prevalencia de SPH en pacientes con cirrosis evaluados para TH como la posible asociación entre el SPS y las variables clínicas que reflejan disfunción hepática e hipertensión portal. Además, este estudio tuvo como objetivo investigar tanto el impacto potencial de la HPS en la supervivencia pre y post-LT como la cronología de la reversibilidad de la HPS después de la LT.
+
+```{r}
+table(almac_sangre$Terapia_adyuvante)
+```
+
+**Cribado serológico y vigilancia molecular de las infecciones por herpesvirus/sarcoma de Kaposi/herpesvirus humano-8 para el reconocimiento precoz y el tratamiento eficaz del síndrome de citocinas inflamatorias asociado al herpesvirus del sarcoma de Kaposi en receptores de trasplantes de órganos sólidos**
+
+(DOI: <https://doi.org/10.1016/j.ajt.2024.11.013>)
+
+En este caso; La enfermedad neoplásica y no neoplásica del sarcoma de Kaposi (KS)/herpesvirus humano-8 (HHV-8) en receptores de trasplantes de órganos sólidos puede ser potencialmente mortal. Evaluamos la seroprevalencia de la infección por HHV-8 entre los donantes (D) y los receptores (R), la incidencia de transmisión/reactivación del HHV-8 y las características clínicas, el tratamiento y los resultados de las enfermedades relacionadas con el HHV-8, incluido el síndrome de citocinas inflamatorias (KICS) asociado al herpesvirus KS, en pacientes con SOT consecutivos entre 2011 y 2023. La seroprevalencia de HHV-8 fue del 3,3% en 1349 donantes y del 8,4% en 1856 receptores examinados (*P* \< 0,0001). En el grupo D+/R− (n = 49), 13 pacientes desarrollaron enfermedades relacionadas con el VHH-8: 7 receptores de hígado tenían KICS y 1 receptor de pulmón tenía SK con KICS posterior. Cuatro pacientes de KICS tratados con rituximab sobrevivieron, mientras que los 3 pacientes no tratados con rituximab fallecieron. Dentro del grupo D-/R-, de 5 (0,3%) pacientes con infección primaria por HHV-8 no derivada del donante, 3 receptores de hígado desarrollaron KICS. De los pacientes R+ (n = 155), 3 desarrollaron SK. En nuestra cohorte, 25/944 (2,6%) receptores de trasplante hepático tenían una infección primaria por HHV-8, y 10 de ellos (40%) desarrollaron KICS; El 40% (4/10) de los receptores de trasplante cardíaco seropositivo para HHV-8 desarrollaron reactivación, y 2 de ellos (50%) presentaron SK mortal. El cribado serológico y la vigilancia molecular de los grupos de pacientes D+/R− facilitan el reconocimiento precoz y el tratamiento eficaz de las KICS.)
+
+Las hipótesis de esta prueba son las siguientes:
+
+-   **Hipótesis nula (H₀):** No existe una diferencia significativa entre la proporción observada y la esperada.
+
+-   **Hipótesis alternativa (H₁):** Existe una diferencia significativa entre la proporción observada y la esperada.
+
+En R, esta prueba se realiza mediante la función `chisq.test()`, a la cual se deben proporcionar los valores observados y las proporciones esperadas para llevar a cabo la comparación.
+
+```{r}
+chisq.test(x = c(49, 155), p = c(0.256, 0.744))
+```
+
+Interpretación
+
+Dado que el valor de p es **mayor a 0.05**, podemos concluir que las proporciones observadas no son significativamente diferentes de las proporciones esperadas.
