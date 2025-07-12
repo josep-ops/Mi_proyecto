@@ -1,0 +1,78 @@
+---
+title: "ENTREGA PC3"
+format: html
+editor: visual
+---
+
+# *Introducción* 
+
+Este documento tiene como objetivo analizar el dataset "bajo_peso.csv", que contiene información sobre factores asociados al peso al nacer de bebés, incluyendo variables como la edad y peso de la madre, raza, tabaquismo, hipertensión, irritabilidad uterina, partos prematuros previos y número de visitas médicas.
+
+El análisis se centrará en dos enfoques principales: primero, se explorará la relación entre estas variables y la probabilidad de bajo peso al nacer mediante un modelo de regresión logística; y segundo, se ajustará un modelo de regresión lineal múltiple para predecir el peso al nacer como variable continua. Los resultados de estos modelos proporcionarán insights clínicos relevantes, como la identificación de factores de riesgo y protectores, para orientar intervenciones en salud materna e infantil.
+
+Todos los cálculos y visualizaciones se realizarán utilizando R, aprovechando paquetes como dplyr para manipulación de datos y funciones base para modelado estadístico.
+
+# PARTE I: 
+
+# Carga del dataset
+
+```{r}
+data <- read.csv("C:/Users/TUUSUARIO/Desktop/DATA/bajo_peso.csv")
+```
+
+# ***4. ¿Qué p-valor se obtiene y qué decisión tomamos para la hipótesis planteada?***
+
+Este script carga el dataset bajo_peso.csv y realiza una regresión logística para evaluar la asociación entre la variable "fuma" y "bajo_peso", así como otras variables predictoras.
+
+```{r}
+# Instalar y cargar paquetes necesarios
+install.packages("dplyr")
+library(dplyr)
+
+# Convertir variables categóricas a factores
+data$bajo_peso <- factor(data$bajo_peso, levels = c("No", "Sí"))
+data$fuma <- factor(data$fuma, levels = c("No", "Sí"))
+data$raza <- factor(data$raza)
+data$hipertension <- factor(data$hipertension, levels = c("No", "Sí"))
+data$irritabilidad_utero <- factor(data$irritabilidad_utero, levels = c("No", "Sí"))
+
+# Ajustar el modelo de regresión logística
+model_logit <- glm(bajo_peso ~ fuma, data = data, family = binomial)
+summary(model_logit)
+
+# Modelo completo con todas las variables predictoras
+model_logit_full <- glm(bajo_peso ~ edad_madre + peso_madre + raza + fuma + partos_prematuros + hipertension + irritabilidad_utero + visitas_medicas, 
+                        data = data, family = binomial)
+summary(model_logit_full)
+```
+
+# PARTE II:
+
+Dado que "bajo_peso" es binaria, la regresión lineal múltiple no es adecuada para esa variable. En cambio, usaremos "peso_nacer" (una variable continua) como variable dependiente para este análisis.
+
+# *1. Presentar el modelo de regresión lineal múltiple con los resultados*
+
+Este script carga el dataset bajo_peso.csv y ajusta un modelo de regresión lineal múltiple para predecir el peso al nacer **(peso_nacer)** en función de las variables predictoras.
+
+```{r}
+# Convertir variables categóricas a factores
+data$raza <- factor(data$raza)
+data$fuma <- factor(data$fuma, levels = c("No", "Sí"))
+data$hipertension <- factor(data$hipertension, levels = c("No", "Sí"))
+data$irritabilidad_utero <- factor(data$irritabilidad_utero, levels = c("No", "Sí"))
+
+# Ajustar el modelo de regresión lineal múltiple
+model_lm <- lm(peso_nacer ~ edad_madre + peso_madre + raza + fuma + partos_prematuros + hipertension + irritabilidad_utero + visitas_medicas, 
+               data = data)
+summary(model_lm)
+```
+
+# *2. Interpretación de resultados*
+
+-   **R-cuadrado múltiple (0.2427)**: El modelo explica aproximadamente el 24.27% de la variabilidad en el peso al nacer. Esto indica que las variables incluidas tienen un impacto moderado, pero hay otros factores no considerados que también influyen.
+
+-   **R-cuadrado ajustado (0.2047)**: Al ajustar por el número de predictores, el modelo explica el 20.47% de la variabilidad, lo que sugiere que el poder explicativo es limitado y que podría mejorarse incluyendo más variables o explorando relaciones no lineales.
+
+-   **Estadístico F (6.376, p = 7.891e-08)**: El modelo es estadísticamente significativo (p \< 0.001), lo que indica que al menos una de las variables independientes tiene un efecto significativo sobre el peso al nacer.
+
+-   **Error estándar residual (650.3 gramos)**: Las predicciones del modelo tienen un error promedio de 650.3 gramos, lo que refleja una variabilidad considerable y sugiere que el modelo no es completamente preciso para predicciones individuales.
